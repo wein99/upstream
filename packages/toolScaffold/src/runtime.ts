@@ -81,6 +81,8 @@ export interface MediaModel {
   mode?: unknown;
   imageSizes?: string[];
   imageRatios?: string[];
+  videoRatios?: string[];
+  frameRatios?: string[];
   durationResolutionMap?: { duration: number[]; resolution: string[] }[];
   audio?: boolean | "optional";
   voices?: { title: string; voice: string }[];
@@ -117,7 +119,15 @@ export interface MediaGenerationRequest {
     | (`${"image" | "video" | "audio"}Reference:${number}`)[];
 }
 
+export interface VideoGenerationInfo {
+  taskId: string;
+  requested: { model: string; duration: number; resolution: string; ratio: string; generateAudio: boolean };
+  reported: { duration?: number; resolution?: string; ratio?: string; generateAudio?: boolean };
+  warnings: string[];
+}
+
 export interface GeneratedMedia {
+  generation?: VideoGenerationInfo;
   path: string;
   mimeType: string;
   mediaType: "image" | "video" | "audio";

@@ -94,12 +94,12 @@
             </el-tooltip>
           </div>
         </el-card>
-        <el-tooltip v-if="!agentVisible" content="Toonflow Agent" placement="top" :showArrow="false" :hideAfter="0">
+        <el-tooltip v-if="!agentVisible" content="Lu aiTV Agent" placement="top" :showArrow="false" :hideAfter="0">
           <el-button
             class="agentButton"
             :class="{ standalone: activePanel !== 'canvas' }"
             :aria-expanded="agentVisible"
-            aria-label="Toonflow Agent"
+            aria-label="Lu aiTV Agent"
             aria-controls="agentPanel"
             @click="agentVisible = !agentVisible"></el-button>
         </el-tooltip>

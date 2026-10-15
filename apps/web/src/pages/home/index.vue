@@ -21,8 +21,8 @@
     <el-main class="pageContent">
       <section class="creationPanel" aria-label="创建项目">
         <div class="brand">
-          <el-image class="brandLogo" :src="logoUrl" fit="contain" alt="Toonflow" />
-          <h1>Toonflow</h1>
+          <el-image class="brandLogo" :src="logoUrl" fit="contain" alt="Lu aiTV" />
+          <h1>Lu aiTV</h1>
         </div>
         <div class="promptArea">
           <span class="arrowHint inspirationHint">

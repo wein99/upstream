@@ -17,5 +17,8 @@ export default {
   protocol: "openai-completions",
   readme: "DeepSeek 提供的模型列表",
   rules,
-  models: [],
+  models: [
+    { id: "deepseek-flash", label: "DeepSeek Flash", type: "text", think: true },
+    { id: "deepseek-v4-pro", label: "DeepSeek V4 Pro", type: "text", think: true },
+  ],
 } satisfies ProviderDefinition<typeof rules>;

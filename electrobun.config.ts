@@ -4,7 +4,7 @@ const startupTarget = process.platform === "darwin" ? (process.arch === "x64" ? 
 
 export default {
   app: {
-    name: "toonflow",
+    name: "Lu aiTV",
     identifier: "local.toonflow.desktop",
     version: process.env.appVersion ?? "2.0.0",
     urlSchemes: ["toonflow"],

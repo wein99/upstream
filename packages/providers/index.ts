@@ -2,10 +2,7 @@
 
 import tfRouterLanguage from "./src/language/tfRouter";
 import deepSeek from "./src/language/deepSeek";
-import tfRouterMedia from "./src/media/tfRouter";
-import apiMart from "./src/media/apiMart";
-import metaso from "./src/media/metaso";
-import compshare from "./src/media/compshare";
+import volcengine from "./src/media/volcengine";
 
 export type Provider = ProviderDefinition;
 export type ProviderPrice = NonNullable<Awaited<ReturnType<NonNullable<Provider["getPrice"]>>>>;
@@ -16,5 +13,5 @@ export type ProviderTools = ProviderContext["tool"];
 export type AudioConvertOptions = Parameters<ProviderTools["audio"]["convert"]>[1];
 export type { FfmpegFactory, FfmpegCommand } from "@toonflow/ffmpeg/types";
 
-export const languageProviders = [tfRouterLanguage, deepSeek] as const;
-export const mediaProviders = [tfRouterMedia, apiMart, metaso, compshare] as const;
+export const languageProviders = [deepSeek, tfRouterLanguage] as const;
+export const mediaProviders = [volcengine] as const;

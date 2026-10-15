@@ -1,4 +1,4 @@
-import tfRouter from "@toonflow/providers/language/tfRouter";
+import deepSeek from "@toonflow/providers/language/deepSeek";
 import tfRouterMedia from "@toonflow/providers/media/tfRouter";
 import conf from "@/utils/conf";
 import { fetchProviderModels } from "@/utils/ai/models";
@@ -13,8 +13,8 @@ function normalizeApiKey(value: unknown) {
 function getLanguageProvider(settings: Record<string, unknown>) {
   const providers = settings.customProviders;
   if (!Array.isArray(providers)) return;
-  return providers.find(item => typeof item?.id === "string" && item.id.toLowerCase() === tfRouter.id.toLowerCase()
-    && typeof item.apiUrl === "string" && URL.canParse(item.apiUrl) && new URL(item.apiUrl).origin === new URL(tfRouter.apiUrl).origin);
+  return providers.find(item => typeof item?.id === "string" && item.id.toLowerCase() === deepSeek.id.toLowerCase()
+    && typeof item.apiUrl === "string" && URL.canParse(item.apiUrl) && new URL(item.apiUrl).origin === new URL(deepSeek.apiUrl).origin);
 }
 
 async function refreshLanguageModels(previousSettings?: Record<string, unknown>) {
@@ -54,7 +54,7 @@ export async function refreshProviderModels(previousSettings?: Record<string, un
   const errors: string[] = [];
   const [language, media] = await Promise.allSettled([refreshLanguageModels(previousSettings), refreshMediaModels(previousSettings, errors)]);
   for (const [result, label] of [[language, "文本"], [media, "媒体"]] as const) {
-    if (result.status === "rejected") errors.push(`TF-Router ${label}模型更新失败：${result.reason instanceof Error ? result.reason.message : "未知错误"}`);
+    if (result.status === "rejected") errors.push(`${label === "文本" ? "DeepSeek" : "TF-Router"} ${label}模型更新失败：${result.reason instanceof Error ? result.reason.message : "未知错误"}`);
   }
   return {
     ...(language.status === "fulfilled" && language.value ? { customProviders: conf.get("settings.customProviders") as typeof language.value } : {}),

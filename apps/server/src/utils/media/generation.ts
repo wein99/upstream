@@ -39,6 +39,10 @@ export async function listMediaModels(): Promise<MediaModel[]> {
       providerId: provider.id, providerLabel: provider.label, modelId: model.id, label: model.label, type: model.type,
       supportsPrice: "supportsPrice" in provider && provider.supportsPrice === true,
       mode: model.mode, durationResolutionMap: model.durationResolutionMap, audio: model.audio,
+      ...(model.type === "video" ? {
+        videoRatios: imageOptions(model.videoRatios ?? builtIn?.videoRatios, /^(?:adaptive|[1-9]\d{0,3}:[1-9]\d{0,3})$/),
+        frameRatios: imageOptions(model.frameRatios ?? builtIn?.frameRatios, /^(?:adaptive|[1-9]\d{0,3}:[1-9]\d{0,3})$/),
+      } : {}),
       ...(model.type === "audio" ? { voices: model.voices } : {}),
       ...(model.type === "image" ? {
         imageSizes: imageOptions(Array.isArray(model.imageSizes) ? model.imageSizes : builtIn?.imageSizes, /^[^\u0000-\u001f\u007f]+$/),
@@ -201,7 +205,7 @@ export async function generateMedia(
         signal?.throwIfAborted();
         await writeWorkspaceFile(path, bytes, true);
         written.push(path);
-        result.push({ path: relative(directory, path).replace(/\\/g, "/"), mimeType, mediaType });
+        result.push({ path: relative(directory, path).replace(/\\/g, "/"), mimeType, mediaType, ...(asset.generation ? { generation: asset.generation } : {}) });
       } finally { release(); }
     }
     signal?.throwIfAborted();

@@ -3,7 +3,7 @@
     <template #reference>
       <el-button class="settingsButton" text size="small" :disabled="disabled" :aria-expanded="settingsVisible" aria-label="视频生成设置">
         <span class="ratioShape" :style="ratioStyle(ratio)" aria-hidden="true" />
-        <span>{{ [ratio, resolution, duration ? `${duration}秒` : ''].filter(Boolean).join(' · ') }}</span>
+        <span>{{ [ratio === 'adaptive' ? '跟随参考画幅' : ratio, resolution, duration ? `${duration}秒` : ''].filter(Boolean).join(' · ') }}</span>
         <component :is="settingsVisible ? IconChevronDown : IconChevronUp" :size="14" aria-hidden="true" />
       </el-button>
     </template>
@@ -31,7 +31,7 @@
         <el-button v-for="item in ratios" :key="item" class="ratioButton" :disabled="disabled" :aria-label="`比例 ${item}`" :aria-pressed="ratio === item" @click="ratio = item">
           <span class="ratioContent">
             <span class="ratioShape" :style="ratioStyle(item)" aria-hidden="true" />
-            <span>{{ item }}</span>
+            <span>{{ item === 'adaptive' ? '自适应' : item }}</span>
           </span>
         </el-button>
       </div>
@@ -72,6 +72,7 @@ function resolutionsFor(value: number | undefined) {
 }
 
 function ratioStyle(value: string) {
+  if (value === "adaptive") return { width: "16px", height: "16px" };
   const [width = 1, height = 1] = value.split(":").map(Number);
   return { width: `${16 * Math.min(width / height, 1)}px`, height: `${16 * Math.min(height / width, 1)}px` };
 }

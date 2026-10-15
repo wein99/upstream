@@ -2,15 +2,15 @@ import { computed, ref, type Ref } from "vue";
 import { nodeTools, z } from "@toonflow/nodes-scaffold/nodeTools";
 import type { NodeOutputs } from "@toonflow/nodes-scaffold/values";
 
-export function useNodeGeneration(outputs: Readonly<Ref<NodeOutputs>>, cancel: () => void) {
+export function useNodeGeneration(outputs: Readonly<Ref<NodeOutputs>>, cancel: () => void, details?: () => Record<string, unknown>) {
   const status = ref<"idle" | "running" | "succeeded" | "failed">("idle");
   const error = ref("");
   const generating = computed(() => status.value === "running");
-  const getStatus = () => ({ status: status.value, outputs: outputs.value, ...(error.value ? { error: error.value } : {}) });
+  const getStatus = () => ({ status: status.value, outputs: outputs.value, ...details?.(), ...(error.value ? { error: error.value } : {}) });
 
   nodeTools.register({
     name: "getGenerationStatus",
-    description: "查询本次打开节点后的生成状态（idle/running/succeeded/failed）、当前输出和最近一次生成错误。当前输出可能来自之前的生成；idle 不表示没有历史输出，只有 succeeded 表示本次生成成功",
+    description: "查询本次打开节点后的生成状态（idle/running/succeeded/failed）、当前输出和最近一次生成错误。视频节点还可返回 lastGeneration 的 requested、reported、actual 与 warnings；actual 仅在播放器已读取元数据时存在。当前输出及 lastGeneration 可能来自之前的生成，需核对 path；idle 不表示没有历史输出，succeeded 不保证输出规格符合请求",
     parameters: z.strictObject({}),
     execute: getStatus,
   });

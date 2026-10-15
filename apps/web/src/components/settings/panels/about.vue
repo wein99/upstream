@@ -1,9 +1,9 @@
 <template>
   <div class="about">
     <div class="brand">
-      <div class="brandMark"><img class="brandLogo" :src="logoUrl" alt="Toonflow Logo" /></div>
+      <div class="brandMark"><img class="brandLogo" :src="logoUrl" alt="Lu aiTV Logo" /></div>
       <div class="brandInfo">
-        <h3>Toonflow</h3>
+        <h3>Lu aiTV</h3>
         <div class="brandMeta">
           <span v-if="currentVersion">v{{ currentVersion }}</span>
           <el-tag v-if="clientBuild?.channel || snapshot?.channel" type="info" size="small" round>{{ clientBuild?.channel || snapshot?.channel }}</el-tag>

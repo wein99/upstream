@@ -27,6 +27,7 @@ export const imageGenerationSchema = z.strictObject({
 });
 export const videoGenerationSchema = z.strictObject({
   ...sharedFields,
+  ratio: z.union([sharedFields.ratio.unwrap(), z.literal("adaptive")]).optional(),
   videos: z.array(videoReference).max(64).optional(),
   audios: z.array(audioReference).max(64).optional(),
   firstFrame: imageReference.optional(),

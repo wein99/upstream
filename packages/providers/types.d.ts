@@ -21,6 +21,8 @@ interface ProviderModel {
   audio?: "optional" | boolean;
   imageSizes?: string[];
   imageRatios?: string[];
+  videoRatios?: string[];
+  frameRatios?: string[];
   durationResolutionMap?: { duration: number[]; resolution: string[] }[];
   voices?: { title: string; voice: string }[];
 }
@@ -53,7 +55,12 @@ type MediaInput =
   | { type: "base64"; data: string; mimeType: string; name?: string }
   | { type: "binary"; data: Uint8Array; mimeType: string; name?: string };
 
-type MediaAsset = MediaInput & { mediaType: "image" | "video" | "audio" };
+type MediaAsset = MediaInput & { mediaType: "image" | "video" | "audio"; generation?: {
+  taskId: string;
+  requested: { model: string; duration: number; resolution: string; ratio: string; generateAudio: boolean };
+  reported: { duration?: number; resolution?: string; ratio?: string; generateAudio?: boolean };
+  warnings: string[];
+} };
 
 type MediaImageInfo = { width: number; height: number; format: string };
 type MediaImageResizeOptions = { width?: number; height?: number; format?: "jpeg" | "png" | "webp"; quality?: number };
