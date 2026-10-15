@@ -37,11 +37,12 @@ if (!isMac) {
   if (!startupBuild.success) throw new AggregateError(startupBuild.logs, "启动动画线程构建失败。");
   const protocolDir = resolve(projectDir, "build/desktop/protocol");
   const csc = resolve(process.env.WINDIR!, "Microsoft.NET/Framework64/v4.0.30319/csc.exe");
+  const appIcon = resolve(projectDir, "packages/assets/logo.ico");
   mkdirSync(protocolDir, { recursive: true });
-  await $`${csc} /nologo /target:winexe /platform:x64 /optimize+ /reference:System.Windows.Forms.dll /out:${resolve(protocolDir, "startupLauncher.exe")} ${resolve(projectDir, "apps/desktop/native/startupLauncher.cs")}`;
-  await $`${csc} /nologo /target:winexe /platform:x64 /optimize+ /reference:System.Windows.Forms.dll /reference:System.Web.Extensions.dll /out:${resolve(protocolDir, "protocolLauncher.exe")} ${resolve(projectDir, "apps/desktop/native/protocolLauncher.cs")}`;
-  await $`${csc} /nologo /target:winexe /platform:x64 /optimize+ /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /out:${resolve(protocolDir, "saveFileDialog.exe")} ${resolve(projectDir, "apps/desktop/native/saveFileDialog.cs")}`;
-  await $`${csc} /nologo /target:winexe /platform:x64 /optimize+ /reference:System.Web.Extensions.dll /reference:System.Windows.Forms.dll /reference:Microsoft.CSharp.dll /out:${resolve(protocolDir, "updateHelper.exe")} ${resolve(projectDir, "apps/desktop/native/updateHelper.cs")}`;
+  await $`${csc} /nologo /target:winexe /platform:x64 /optimize+ /win32icon:${appIcon} /reference:System.Windows.Forms.dll /out:${resolve(protocolDir, "startupLauncher.exe")} ${resolve(projectDir, "apps/desktop/native/startupLauncher.cs")}`;
+  await $`${csc} /nologo /target:winexe /platform:x64 /optimize+ /win32icon:${appIcon} /reference:System.Windows.Forms.dll /reference:System.Web.Extensions.dll /out:${resolve(protocolDir, "protocolLauncher.exe")} ${resolve(projectDir, "apps/desktop/native/protocolLauncher.cs")}`;
+  await $`${csc} /nologo /target:winexe /platform:x64 /optimize+ /win32icon:${appIcon} /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /out:${resolve(protocolDir, "saveFileDialog.exe")} ${resolve(projectDir, "apps/desktop/native/saveFileDialog.cs")}`;
+  await $`${csc} /nologo /target:winexe /platform:x64 /optimize+ /win32icon:${appIcon} /reference:System.Web.Extensions.dll /reference:System.Windows.Forms.dll /reference:Microsoft.CSharp.dll /out:${resolve(protocolDir, "updateHelper.exe")} ${resolve(projectDir, "apps/desktop/native/updateHelper.cs")}`;
 }
 // ACT: 团队暂不打包；恢复时也在 package.json 的 dev:plugins 中加回 --filter './packages/teams/*'。
 for (const script of mode === "dev" ? ["dev:plugins"] : [

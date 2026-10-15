@@ -222,6 +222,8 @@ installFailed:
   SetErrorLevel 2
   Abort
 installDone:
+  ; 同路径覆盖 ICO 后通知 Shell 刷新图标，不删除缓存或重启资源管理器。
+  System::Call 'shell32::SHChangeNotify(i 0x08000000, i 0, p 0, p 0)'
 SectionEnd
 
 Section "Uninstall"
