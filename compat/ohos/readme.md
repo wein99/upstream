@@ -1,4 +1,4 @@
-# Toonflow OHOS
+# Lu aiTV OHOS
 
 独立鸿蒙兼容构建，复用 `apps/mobile/src/server.ts`、完整网页与内置插件。ArkTS UIAbility/ArkWeb 加载应用内 Bun 在随机 localhost 端口提供的页面；C++ NAPI 只负责启动和回收 Bun。不会启动电脑上的服务来冒充本机后端。
 
@@ -8,10 +8,15 @@
 
 当前构建环境为 Windows、仓库已安装的 Bun 依赖及 DevEco Studio 26。生成工程的最低 API 为 12、目标 API 为 26，设备类型为 phone/tablet。版本沿用根目录 `electrobun.config.ts`，也可设置 `appVersion=X.Y.Z`。
 
+2026-10-15 已使用 DevEco Studio 26.0.0.851、SDK 26.0.0.105 完成 Lu aiTV 2.0.6 的 ArkTS、ARM64 C++ 编译与 HAP 打包。包内 Bun 哈希与发布物一致，rawfile 保持未压缩，ZIP 完整性检查通过。本次没有连接手机，没有配置设备签名，未验证安装、启动、模型请求及数据持久化。构建脚本的独立 TypeScript 检查仍受根目录缺少 `.hutch/devkit/api/config/ElectrobunConfig` 影响；不等于 ArkTS 编译失败。
+
 在仓库根目录执行：
 
 ```powershell
 $env:DEVECO_HOME = 'C:\Program Files\Huawei\DevEco Studio'
+$env:appVersion = '2.0.6'
+# 仓库路径含中文时，Hvigor 要求使用英文构建目录。
+$env:ohosBuildDirectory = 'F:\luAiTvOhosBuild'
 bun run --cwd compat/ohos setup
 bun run --cwd compat/ohos typecheck
 bun run --cwd compat/ohos build
@@ -19,7 +24,7 @@ bun run --cwd compat/ohos build
 
 `setup` 下载并校验 Bun，然后用 DevEco 自带 OHPM 链接项目自己的 NAPI 类型声明。`build` 复用 `build:server` 构建前后端及插件，然后生成标准 Hvigor 工程、编译原生桥和 ArkTS、打包 HAP。SDK 强制要求的 `build-profile.json5`、`CMakeLists.txt` 等文件只生成到 `build/ohos/project`。构建不会隐式运行 `setup`。
 
-默认产物为 `build/ohos/toonflow-2.0.0-ohos-arm64-v8a-unsigned.hap`，文件名随项目版本变化。程序资源在 `build/ohos/payload`；可用 DevEco Studio 打开 `build/ohos/project` 调试和配置签名。
+默认产物为 `build/ohos/luAiTv-2.0.6-ohos-arm64-v8a-unsigned.hap`，文件名随项目版本变化。设置 `ohosBuildDirectory` 后，运行时、工程、资源和 HAP 均在指定目录下；可用 DevEco Studio 打开其中的 `project` 调试和配置签名。此电脑 DevEco 安装目录为 `F:\Huawei\DevEco Studio`。
 
 可选环境变量：
 
@@ -27,6 +32,7 @@ bun run --cwd compat/ohos build
 | --- | --- |
 | `DEVECO_HOME` | DevEco Studio 安装目录，默认如上 |
 | `DEVECO_SDK_HOME` | SDK 根目录，默认 `DEVECO_HOME/sdk` |
+| `ohosBuildDirectory` | 构建输出目录，默认仓库 `build/ohos`；路径不能含中文，使用外部目录时应选择构建专用目录 |
 | `ohosBunPath` | 已构建并签名的 OHOS Bun ELF 的绝对路径；覆盖默认运行时 |
 | `ohosArch` | 默认 `arm64-v8a`；只有另备兼容 OHOS 的 x86_64 ELF 才能选 `x86_64` |
 | `ohosSigningConfig` | 一个完整 DevEco `signingConfigs` 配置对象的 JSON 文件路径 |
@@ -45,7 +51,7 @@ $hdc = Join-Path $env:DEVECO_HOME 'sdk\default\openharmony\toolchains\hdc.exe'
 & $hdc tconn 127.0.0.1:5557
 & $hdc list targets
 & $hdc -t 127.0.0.1:5557 shell param get const.product.cpu.abilist
-& $hdc -t 127.0.0.1:5557 install -r (Resolve-Path build/ohos/toonflow-2.0.0-ohos-arm64-v8a-signed.hap).Path
+& $hdc -t 127.0.0.1:5557 install -r (Resolve-Path "$env:ohosBuildDirectory/luAiTv-2.0.6-ohos-arm64-v8a-signed.hap").Path
 & $hdc -t 127.0.0.1:5557 shell aa start -b com.toonflow.mobile -a entryAbility
 & $hdc -t 127.0.0.1:5557 shell hilog -T ToonflowRuntime
 ```
@@ -60,3 +66,4 @@ $hdc = Join-Path $env:DEVECO_HOME 'sdk\default\openharmony\toolchains\hdc.exe'
 - 保留横屏、全屏、文件上传和系统文件保存；设备互联可手输配对码。相机授权和拍摄扫码尚未接入。
 - Bun 随 Ability 生命周期运行，没有后台长任务保证。`TOONFLOW_PLATFORM=ohos` 用于避免把该 Bun 报告的 `linux` 误当作 Linux FFmpeg 支持。
 - 必须在 ARM64 设备上继续验证 HAP 签名安装、应用沙箱内 `posix_spawn`/ELF 执行/JIT、Bun FFI 与原子文件创建、ArkWeb 实际渲染、系统文件选择及重启持久化。上游终端环境的 Bun 支持不能替代普通 HarmonyOS 手机 HAP 的验证。
+- Android APK 在卓易通中出现的 `Bun 已退出，退出码：159` 不能视为 OHOS HAP 的运行结果。159 与 `128 + SIGSYS(31)` 相符，可能涉及兼容环境限制系统调用；未取得 Logcat 前不认定具体调用或故障根因，也不宣称 HAP 已解决该故障。

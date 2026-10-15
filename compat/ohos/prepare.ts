@@ -2,7 +2,7 @@ import { existsSync, mkdir, writeAtomic } from "@toonflow/file";
 import { file } from "@toonflow/file/bun";
 import { resolve } from "node:path";
 
-const runtimeRoot = resolve(import.meta.dir, "../../build/ohos/runtime");
+const runtimeRoot = resolve(process.env.ohosBuildDirectory || resolve(import.meta.dir, "../../build/ohos"), "runtime");
 const runtimePath = resolve(runtimeRoot, "bun");
 const runtimeHash = "f1382157493f24e7876171a8dc5a7453564d8bf379adcd67c646988ff9105cf7";
 await mkdir(runtimeRoot, { recursive: true });

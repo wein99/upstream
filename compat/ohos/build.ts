@@ -1,9 +1,9 @@
 import { copyFile, cp, existsSync, mkdir, readFile, readdir, realpath, rm, writeAtomic } from "@toonflow/file";
-import { dirname, isAbsolute, join, relative, resolve } from "node:path";
+import { delimiter, dirname, isAbsolute, join, relative, resolve } from "node:path";
 import config from "../../electrobun.config";
 
 const projectRoot = resolve(import.meta.dir, "../..");
-const buildRoot = join(projectRoot, "build/ohos");
+const buildRoot = resolve(process.env.ohosBuildDirectory || join(projectRoot, "build/ohos"));
 const staging = join(buildRoot, "project");
 const deveco = process.env.DEVECO_HOME || "C:/Program Files/Huawei/DevEco Studio";
 const sdkRoot = process.env.DEVECO_SDK_HOME || join(deveco, "sdk");
@@ -17,6 +17,7 @@ const abi = process.env.ohosArch || "arm64-v8a";
 const version = config.app.version;
 if (process.argv.length > (setup ? 3 : 2)) throw new Error("用法：bun compat/ohos/build.ts [setup]");
 if (process.platform !== "win32") throw new Error("当前 OHOS 打包使用 Windows DevEco Studio SDK。");
+if (!/^[a-zA-Z]:[\\/][\w\s@.()\\/-]+$/.test(staging)) throw new Error("Hvigor 工程路径不能含中文，请用 ohosBuildDirectory 指定英文构建目录。");
 if (!["arm64-v8a", "x86_64"].includes(abi)) throw new Error("ohosArch 必须为 arm64-v8a 或 x86_64。");
 if (!/^\d+\.\d+\.\d+$/.test(version)) throw new Error("OHOS 版本号必须为 X.Y.Z。");
 const [major, minor, patch] = version.split(".").map(Number);
@@ -32,7 +33,8 @@ const machine = runtime.length >= 20 ? runtime.readUInt16LE(18) : 0;
 if (runtime.subarray(0, 4).toString("hex") !== "7f454c46" || runtime[4] !== 2 || runtime[5] !== 1 || machine !== (abi === "arm64-v8a" ? 183 : 62)) {
   throw new Error(`Bun ELF 与 ${abi} 不匹配。springmin/bun 的默认发布物仅支持 ARM64；x86_64 需要单独提供兼容 OHOS 的 ohosBunPath。`);
 }
-const env = { ...process.env, JAVA_HOME: join(deveco, "jbr"), DEVECO_SDK_HOME: sdkRoot };
+const pathKey = Object.keys(process.env).find(key => key.toLowerCase() === "path") || "PATH";
+const env = { ...process.env, JAVA_HOME: join(deveco, "jbr"), DEVECO_SDK_HOME: sdkRoot, [pathKey]: `${join(deveco, "jbr/bin")}${delimiter}${process.env[pathKey] || ""}` };
 async function run(command: string[], cwd = staging) {
   const child = Bun.spawn(command, { cwd, env, stdout: "inherit", stderr: "inherit" });
   if (await child.exited !== 0) throw new Error(`命令执行失败：${command[0]}`);
@@ -45,7 +47,7 @@ async function write(path: string, content: string | object) {
 
 await mkdir(buildRoot, { recursive: true });
 // ACT: SDK 强制使用的文件名只生成到 build，compat 内自有源码保持小驼峰。
-await write("oh-package.json5", { modelVersion: "6.0.0", name: "toonflowOhos", version, dependencies: {} });
+await write("oh-package.json5", { modelVersion: "6.0.0", name: "luAiTvOhos", version, dependencies: {} });
 await write("hvigor/hvigor-config.json5", { modelVersion: "6.0.0", dependencies: {}, execution: { daemon: false } });
 await write("hvigorfile.ts", 'import { appTasks } from "@ohos/hvigor-ohos-plugin";\nexport default { system: appTasks };\n');
 const signingConfig = process.env.ohosSigningConfig ? JSON.parse(await readFile(resolve(process.env.ohosSigningConfig), "utf8")) : undefined;
@@ -56,8 +58,8 @@ await write("build-profile.json5", {
   app: { signingConfigs: signingConfig ? [signingConfig] : [], products: [{ name: "default", ...(signingConfig ? { signingConfig: signingConfig.name } : {}), compatibleSdkVersion: "5.0.0(12)", targetSdkVersion: "26.0.0", runtimeOS: "HarmonyOS" }], buildModeSet: [{ name: "debug" }, { name: "release" }] },
   modules: [{ name: "entry", srcPath: "./entry", targets: [{ name: "default", applyToProducts: ["default"] }] }],
 });
-await write("AppScope/app.json5", { app: { bundleName: "com.toonflow.mobile", vendor: "Toonflow", versionCode, versionName: version, icon: "$media:logo", label: "$string:appName" } });
-await write("AppScope/resources/base/element/string.json", { string: [{ name: "appName", value: "Toonflow" }] });
+await write("AppScope/app.json5", { app: { bundleName: "com.toonflow.mobile", vendor: "Lu aiTV", versionCode, versionName: version, icon: "$media:logo", label: "$string:appName" } });
+await write("AppScope/resources/base/element/string.json", { string: [{ name: "appName", value: "Lu aiTV" }] });
 await mkdir(join(staging, "AppScope/resources/base/media"), { recursive: true });
 await copyFile(join(projectRoot, "packages/assets/logo.iconset/icon_512x512.png"), join(staging, "AppScope/resources/base/media/logo.png"));
 await write("entry/hvigorfile.ts", 'import { hapTasks } from "@ohos/hvigor-ohos-plugin";\nexport default { system: hapTasks };\n');
@@ -127,6 +129,6 @@ const archiveProcess = Bun.spawn([
 if (await archiveProcess.exited !== 0) throw new Error("压缩 OHOS 资源失败");
 await run([node, hvigor, "--mode", "module", "-p", "product=default", "-p", "module=entry@default", "-p", "buildMode=debug", "assembleHap", "--no-daemon"]);
 const signed = signingConfig ? "signed" : "unsigned";
-const output = join(buildRoot, `toonflow-${version}-ohos-${abi}-${signed}.hap`);
+const output = join(buildRoot, `luAiTv-${version}-ohos-${abi}-${signed}.hap`);
 await copyFile(join(staging, `entry/build/default/outputs/default/entry-default-${signed}.hap`), output);
 console.log(`OHOS HAP 已生成${signingConfig ? "" : "（未签名，安装前需配置 ohosSigningConfig）"}：${output}`);
