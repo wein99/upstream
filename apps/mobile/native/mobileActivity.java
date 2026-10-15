@@ -632,7 +632,10 @@ public class mobileActivity extends Activity {
       String nativeDirectory = getApplicationInfo().nativeLibraryDir;
       File runtime = new File(nativeDirectory, "libbun.so");
       if (!runtime.canExecute()) throw new IOException("APK 中缺少可执行 Bun：" + runtime);
+        File compatibility = new File(nativeDirectory, "libbunCompat.so");
+        if (!compatibility.isFile()) throw new IOException("APK 中缺少 Android Bun 兼容库");
       ProcessBuilder builder = new ProcessBuilder(runtime.getAbsolutePath(), "--no-orphans", new File(appDirectory, "server.js").getAbsolutePath());
+        builder.environment().put("LD_PRELOAD", compatibility.getAbsolutePath());
       builder.directory(appDirectory).redirectErrorStream(true);
       builder.environment().put("TOONFLOW_MOBILE_DATA_DIR", new File(getFilesDir(), "data").getAbsolutePath());
       builder.environment().put("TOONFLOW_MOBILE_DEVICE_NAME", (Build.MANUFACTURER + " " + Build.MODEL).trim());

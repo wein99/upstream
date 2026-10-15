@@ -36,6 +36,7 @@ const signer = requireFile(join(sdkRoot, "build-tools/36.0.0/lib/apksigner.jar")
 const java = requireFile(javaRoot ? join(javaRoot, "bin/java.exe") : Bun.which("java.exe") || "java.exe", "请设置 JAVA_HOME 为 JDK 17 或更高版本目录。");
 for (const abi of abis) requireFile(join(buildRoot, "runtime", abi, "libbun.so"), "请先执行 bun run --cwd apps/mobile setup。");
 const gradleLauncher = requireFile(join(buildRoot, "gradle/gradle-9.6.0/lib/gradle-gradle-cli-main-9.6.0.jar"), "请先执行 bun run --cwd apps/mobile setup。");
+const nativeCompiler = requireFile(join(sdkRoot, "ndk/28.2.13676358/toolchains/llvm/prebuilt/windows-x86_64/bin/clang.exe"), "请先执行 bun run --cwd apps/mobile setup。");
 
 async function run(command: string[], cwd = staging) {
   const result = Bun.spawn(command, { cwd, env: process.env, stdout: "inherit", stderr: "inherit" });
@@ -80,6 +81,11 @@ for (const abi of abis) {
   const destination = join(staging, "lib", abi, "libbun.so");
   await mkdir(dirname(destination), { recursive: true });
   await copyFile(join(buildRoot, "runtime", abi, "libbun.so"), destination);
+  await run([
+    nativeCompiler, "--target=aarch64-linux-android26", "-shared", "-fPIC", "-O2", "-Wall", "-Wextra", "-Werror",
+    "-Wl,-z,relro,-z,now,-z,max-page-size=16384", "-Wl,--no-undefined", "-Wl,-soname,libbunCompat.so",
+    join(mobileRoot, "native/bunCompat.c"), "-o", join(dirname(destination), "libbunCompat.so"),
+  ]);
 }
 const thirdParty = join(mobileRoot, "thirdParty.md");
 if (existsSync(thirdParty)) await copyFile(thirdParty, join(staging, "assets/thirdParty.md"));

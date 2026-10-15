@@ -43,6 +43,15 @@ const sdkRoot = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT;
 if (!sdkRoot) throw new Error("请设置 ANDROID_HOME 为 Android SDK 目录。");
 const java = process.env.JAVA_HOME ? join(process.env.JAVA_HOME, "bin/java.exe") : Bun.which("java.exe");
 if (!java || !existsSync(java)) throw new Error("请设置 JAVA_HOME 为 JDK 17 或更高版本目录。");
+const ndkVersion = "28.2.13676358";
+if (!existsSync(join(sdkRoot, "ndk", ndkVersion, "source.properties"))) {
+  const sdkManager = join(sdkRoot, "cmdline-tools/latest/bin/sdkmanager.bat");
+  if (!existsSync(sdkManager)) throw new Error("请安装 Android SDK Command-line Tools (latest)。");
+  const installation = Bun.spawn(["cmd.exe", "/c", sdkManager, `ndk;${ndkVersion}`], {
+    env: process.env, stdout: "inherit", stderr: "inherit",
+  });
+  if (await installation.exited !== 0) throw new Error("准备 Android NDK 失败");
+}
 const gradleVersion = "9.6.0";
 const gradleSha256 = "bbaeb2fef8710818cf0e261201dab964c572f92b942812df0c3620d62a529a01";
 const gradleRoot = join(buildRoot, "gradle");
